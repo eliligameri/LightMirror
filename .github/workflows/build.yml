@@ -1,7 +1,7 @@
 name: Build LightMirror
 
 permissions:
-  contents: read
+  contents: write
 
 on:
   workflow_dispatch:
@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Configure x64 Release
         run: cmake -S . -B build -A x64 -DLIGHTMIRROR_BUILD_TESTS=ON
@@ -35,9 +35,23 @@ jobs:
             Set-Content artifact\SHA256SUMS.txt
 
       - name: Upload executable
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: LightMirror-windows-x64
           path: artifact/
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish downloadable release
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create clean-capture-v2 `
+            artifact\LightMirror.exe `
+            artifact\README.md `
+            artifact\SHA256SUMS.txt `
+            --title "LightMirror Clean Capture v2" `
+            --notes "Ready-to-run x64 Release build with Clean System Capture and endpoint-loopback fallback." `
+            --target $env:GITHUB_SHA
