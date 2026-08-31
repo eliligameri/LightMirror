@@ -26,7 +26,7 @@ jobs:
 
           $devicePath = 'source/LightMirror/src/DeviceManager.cpp'
           $device = Get-Content -LiteralPath $devicePath -Raw
-          $device = $device.Replace('#include <functiondiscoverykeys_devpkey.h>', "#include <windows.h>`r`n#include <propkeydef.h>`r`n#include <functiondiscoverykeys_devpkey.h>")
+          $device = $device.Replace('#include <functiondiscoverykeys_devpkey.h>', "#include <windows.h>`r`n#include <mmdeviceapi.h>`r`n#include <functiondiscoverykeys_devpkey.h>")
           Set-Content -LiteralPath $devicePath -Value $device -NoNewline
 
       - name: Configure x64 Release
