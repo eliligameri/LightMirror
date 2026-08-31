@@ -1,9 +1,8 @@
 #include "DeviceManager.h"
 
 #include <windows.h>
-#include <propkeydef.h>
-#include <functiondiscoverykeys_devpkey.h>
 #include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
 #include <propvarutil.h>
 #include <wrl/client.h>
 
