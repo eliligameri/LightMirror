@@ -16,6 +16,8 @@ add_executable(LightMirror WIN32
     src/AudioUtils.h
     src/DeviceManager.cpp
     src/DeviceManager.h
+    src/ProcessLoopback.cpp
+    src/ProcessLoopback.h
     src/Settings.cpp
     src/Settings.h
     src/StereoRingBuffer.h
@@ -30,7 +32,6 @@ target_compile_definitions(LightMirror PRIVATE
     WIN32_LEAN_AND_MEAN
     NOMINMAX
     _WIN32_WINNT=0x0A00
-    NTDDI_VERSION=NTDDI_WIN10_RS2
 )
 
 target_link_libraries(LightMirror PRIVATE
@@ -65,7 +66,7 @@ if(LIGHTMIRROR_BUILD_TESTS)
     target_compile_features(LightMirrorTests PRIVATE cxx_std_17)
     target_compile_definitions(LightMirrorTests PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
-        _WIN32_WINNT=0x0A00 NTDDI_VERSION=NTDDI_WIN10_RS2
+        _WIN32_WINNT=0x0A00
     )
     target_link_libraries(LightMirrorTests PRIVATE ole32 uuid)
     if(MSVC)

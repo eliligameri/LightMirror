@@ -1,4 +1,7 @@
-name: Build LightMirror App
+name: Build LightMirror
+
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
@@ -9,45 +12,32 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Extract complete source
-        shell: pwsh
-        run: Expand-Archive -LiteralPath LightMirror-ready-repo.zip -DestinationPath source -Force
-
-      - name: Apply Windows SDK compatibility fixes
-        shell: pwsh
-        run: |
-          $mainPath = 'source/LightMirror/src/main.cpp'
-          $main = Get-Content -LiteralPath $mainPath -Raw
-          $main = $main.Replace('#include <windows.h>', "#include <windows.h>`r`n#include <objbase.h>")
-          Set-Content -LiteralPath $mainPath -Value $main -NoNewline
-
-          $devicePath = 'source/LightMirror/src/DeviceManager.cpp'
-          $device = Get-Content -LiteralPath $devicePath -Raw
-          $device = $device.Replace('#include <functiondiscoverykeys_devpkey.h>', "#include <windows.h>`r`n#include <mmdeviceapi.h>`r`n#include <functiondiscoverykeys_devpkey.h>")
-          Set-Content -LiteralPath $devicePath -Value $device -NoNewline
-
       - name: Configure x64 Release
-        run: cmake -S source/LightMirror -B build -A x64
+        run: cmake -S . -B build -A x64 -DLIGHTMIRROR_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config Release --parallel
 
-      - name: Run tests
+      - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
 
-      - name: Prepare artifact
+      - name: Stage artifact
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifact | Out-Null
           Copy-Item build\Release\LightMirror.exe artifact\LightMirror.exe
-          Copy-Item source\LightMirror\README.md artifact\README.md
+          Copy-Item README.md artifact\README.md
+          Get-FileHash artifact\LightMirror.exe -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLower())  LightMirror.exe" } |
+            Set-Content artifact\SHA256SUMS.txt
 
-      - name: Upload LightMirror
+      - name: Upload executable
         uses: actions/upload-artifact@v4
         with:
           name: LightMirror-windows-x64
           path: artifact/
           if-no-files-found: error
+          retention-days: 30
