@@ -14,10 +14,23 @@ jobs:
 
       - name: Extract complete source
         shell: pwsh
-        run: Expand-Archive -LiteralPath LightMirror-fixed.zip -DestinationPath source -Force
+        run: Expand-Archive -LiteralPath LightMirror-ready-repo.zip -DestinationPath source -Force
+
+      - name: Apply Windows SDK compatibility fixes
+        shell: pwsh
+        run: |
+          $mainPath = 'source/LightMirror/src/main.cpp'
+          $main = Get-Content -LiteralPath $mainPath -Raw
+          $main = $main.Replace('#include <windows.h>', "#include <windows.h>`r`n#include <objbase.h>")
+          Set-Content -LiteralPath $mainPath -Value $main -NoNewline
+
+          $devicePath = 'source/LightMirror/src/DeviceManager.cpp'
+          $device = Get-Content -LiteralPath $devicePath -Raw
+          $device = $device.Replace('#include <functiondiscoverykeys_devpkey.h>', "#include <windows.h>`r`n#include <propkeydef.h>`r`n#include <functiondiscoverykeys_devpkey.h>")
+          Set-Content -LiteralPath $devicePath -Value $device -NoNewline
 
       - name: Configure x64 Release
-        run: cmake -S source/LightMirror-fixed -B build -A x64
+        run: cmake -S source/LightMirror -B build -A x64
 
       - name: Build
         run: cmake --build build --config Release --parallel
@@ -30,7 +43,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force artifact | Out-Null
           Copy-Item build\Release\LightMirror.exe artifact\LightMirror.exe
-          Copy-Item source\LightMirror-fixed\README.md artifact\README.md
+          Copy-Item source\LightMirror\README.md artifact\README.md
 
       - name: Upload LightMirror
         uses: actions/upload-artifact@v4
