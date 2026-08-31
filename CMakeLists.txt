@@ -39,6 +39,7 @@ target_link_libraries(LightMirror PRIVATE
     uuid
     avrt
     comctl32
+    mmdevapi
 )
 
 if(MSVC)
