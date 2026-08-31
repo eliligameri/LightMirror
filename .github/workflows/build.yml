@@ -12,8 +12,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract complete source
+        shell: pwsh
+        run: Expand-Archive -LiteralPath LightMirror-ready-repo.zip -DestinationPath source -Force
+
       - name: Configure x64 Release
-        run: cmake -S . -B build -A x64
+        run: cmake -S source/LightMirror -B build -A x64
 
       - name: Build
         run: cmake --build build --config Release --parallel
@@ -26,7 +30,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force artifact | Out-Null
           Copy-Item build\Release\LightMirror.exe artifact\LightMirror.exe
-          Copy-Item README.md artifact\README.md
+          Copy-Item source\LightMirror\README.md artifact\README.md
 
       - name: Upload LightMirror
         uses: actions/upload-artifact@v4
